@@ -23,6 +23,8 @@ namespace Com.MyCompany.MyGame
             [SerializeField]
             private GameObject progressText_GO;
 
+            bool isConnecting;
+
         #endregion
 
         #region Private Fields
@@ -71,6 +73,8 @@ namespace Com.MyCompany.MyGame
             /// &lt;/summary&gt;
             public void Connect()
             {
+                ToggleControlPanelAndProgreeText(false);
+
                 // check if we are connected or not
                 if(PhotonNetwork.IsConnected)
                 {
@@ -78,11 +82,9 @@ namespace Com.MyCompany.MyGame
                 }
                 else
                 {
-                    PhotonNetwork.ConnectUsingSettings();
+                    isConnecting = PhotonNetwork.ConnectUsingSettings();
                     PhotonNetwork.GameVersion = gameVersion;
                 }
-
-                ToggleControlPanelAndProgreeText(false);
             }
 
         #endregion
@@ -103,7 +105,12 @@ namespace Com.MyCompany.MyGame
             {
                 Debug.Log("PUN Basics Tutorial/Launcher: OnConnectedToMaster was called by PUN");
 
-                PhotonNetwork.JoinRandomRoom();
+                if (isConnecting)
+                {
+                    // #Critical: The first we try to do is to join a potential existing room. If there is, good, else, we'll be called back with OnJoinRandomFailed()
+                    PhotonNetwork.JoinRandomRoom();
+                    isConnecting = false;
+                }
             }
 
             public override void OnDisconnected(DisconnectCause cause)
